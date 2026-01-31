@@ -52,9 +52,35 @@ class GeneticAlgorithm:
         # Remember: Selection determines which traits get passed to next generation!
         
         # Minimal version: just take top 50% of population
-        survival_count = max(1, len(fitness_scores) // 2)  # Top 50%
-        survivors = [gatherer for gatherer, fitness in fitness_scores[:survival_count]]
+        #survival_count = max(1, len(fitness_scores) // 2)  # Top 50%
+        #survivors = [gatherer for gatherer, fitness in fitness_scores[:survival_count]]
+        #return survivors
+    
+
+        if not fitness_scores:
+            return []
+    
+        # calculate survivors we need
+        total_population = len(fitness_scores)
+        num_survivors = max(1, int(total_population * SURVIVAL_RATE))
+        
+        # tournament parameters
+        tournament_size = 3  
+        
+        # run tournaments
+        survivors = []
+        for _ in range(num_survivors):
+            # Randomly select tournament participants
+            tournament = random.sample(fitness_scores, min(tournament_size, len(fitness_scores)))
+            
+            # winner is highest fitness in tournament
+            winner = max(tournament, key=lambda x: x[1]) 
+            
+            survivors.append(winner[0])  
+        
         return survivors
+        
+
     
     def crossover(self, parent1, parent2):
         child_genes = {}
@@ -88,12 +114,28 @@ class GeneticAlgorithm:
         #
         # Remember: Mutation provides diversity but shouldn't destroy good solutions!
         
+        '''
         for gene_name in gatherer.genes:
             if random.random() < MUTATION_RATE:
                 # Minimal version: just flip a coin and randomize the gene completely
                 min_val, max_val = GENE_RANGES[gene_name]
                 gatherer.genes[gene_name] = random.uniform(min_val, max_val)
-    
+        '''
+
+        for gene_name in gatherer.genes:
+            if random.random() < MUTATION_RATE:
+                current_value = gatherer.genes[gene_name]
+                min_val, max_val = GENE_RANGES[gene_name]
+                
+                noise = random.gauss(0, current_value * MUTATION_STRENGTH)
+                new_value = current_value + noise
+                
+                new_value = max(min_val, min(max_val, new_value))
+                
+                gatherer.genes[gene_name] = new_value
+
+        
+        
     def create_next_generation(self, population):
         # Evaluate fitness
         fitness_scores = self.evaluate_fitness(population)

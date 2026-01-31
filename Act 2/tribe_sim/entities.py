@@ -190,8 +190,41 @@ class Gatherer:
         #
         # Remember: Higher fitness = more likely to reproduce!
         
-        return self.age / 100.0  # Minimal version: just survival time
-    
+        # return self.age / 100.0  # Minimal version: just survival time
+        
+        
+        # survival time 
+        survival_score = self.age / 30.0
+        
+        # resource contribution 
+        food_score = self.food_collected * 2.0
+        
+        # efficiency - - food per second alive
+        if self.age > 0:
+            efficiency_score = self.food_collected / self.age
+        else:
+            efficiency_score = 0
+        
+        # energy management 
+        energy_score = self.energy / 100.0
+        
+        # cooperation 
+        cooperation_bonus = self.genes["cooperation"] * 0.5
+
+        # prefer surviviors 
+        alive_bonus = 1.0 if self.alive else -0.5
+                
+        fitness = (
+            survival_score        
+            + food_score            
+            + efficiency_score    
+            + energy_score         
+            + cooperation_bonus    
+            + alive_bonus           
+        )
+        
+        return max(0.0, fitness)
+        
     def take_damage(self):
         """Handle death/life loss"""
         self.alive = False
